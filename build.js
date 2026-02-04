@@ -1,4 +1,116 @@
-<!DOCTYPE html>
+const { google } = require('googleapis');
+const fs = require('fs');
+const path = require('path');
+
+// Load configuration
+const config = require('./config.json');
+
+// Load OAuth token
+const tokenPath = path.join(__dirname, config.google.tokenFile);
+const tokens = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
+
+// Create OAuth2 client
+const oauth2Client = new google.auth.OAuth2(
+  config.google.oauth.clientId,
+  config.google.oauth.clientSecret,
+  config.google.oauth.redirectUri
+);
+
+oauth2Client.setCredentials(tokens);
+
+// Handle token refresh
+oauth2Client.on('tokens', (newTokens) => {
+  if (newTokens.refresh_token) {
+    tokens.refresh_token = newTokens.refresh_token;
+    fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
+  }
+});
+
+const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+async function fetchPoems() {
+  console.log('Fetching poems from Google Drive...');
+
+  const response = await drive.files.list({
+    q: `mimeType = 'text/markdown' and '${config.google.rootFolderId}' in parents and trashed = false`,
+    fields: 'files(id, name, createdTime, size)',
+    orderBy: 'createdTime desc',
+    pageSize: 50
+  });
+
+  const files = response.data.files || [];
+  console.log(`Found ${files.length} markdown files`);
+
+  const poems = [];
+
+  for (const file of files) {
+    const fileResponse = await drive.files.get({
+      fileId: file.id,
+      alt: 'media'
+    });
+
+    const content = fileResponse.data;
+
+    // Parse YAML frontmatter from Markdown
+    const { title, book, language } = parseFrontmatter(content);
+    const body = extractPoemBody(content);
+
+    poems.push({
+      id: file.id,
+      title: title || file.name.replace('.md', ''),
+      book: book || 'Unknown',
+      body: body,
+      language: language || 'es',
+      created: new Date(file.createdTime)
+    });
+  }
+
+  return poems;
+}
+
+function parseFrontmatter(content) {
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!frontmatterMatch) {
+    return { title: null, book: null, language: null };
+  }
+
+  const frontmatter = frontmatterMatch[1];
+  const lines = frontmatter.split('\n');
+
+  const result = { title: null, book: null, language: null };
+
+  for (const line of lines) {
+    const titleMatch = line.match(/title:\s*"([^"]+)"/);
+    const bookMatch = line.match(/book:\s*"([^"]+)"/);
+    const langMatch = line.match(/language:\s*"([^"]+)"/);
+
+    if (titleMatch) result.title = titleMatch[1];
+    if (bookMatch) result.book = bookMatch[1];
+    if (langMatch) result.language = langMatch[1];
+  }
+
+  return result;
+}
+
+function extractPoemBody(content) {
+  const withoutFrontmatter = content.replace(/^---\n[\s\S]*?\n---\n/, '');
+  const firstStanza = withoutFrontmatter.split('\n\n')[0];
+  return firstStanza || withoutFrontmatter.substring(0, 200) + '...';
+}
+
+async function generateHTML(poems) {
+  console.log('Generating HTML...');
+
+  const cardsHTML = poems.map((poem, index) => `
+            <article class="poem-card">
+                <div class="poem-meta">${poem.book}</div>
+                <h2 class="poem-title">${escapeHTML(poem.title)}</h2>
+                <p class="poem-body">${escapeHTML(poem.body)}</p>
+                <a href="https://drive.google.com/file/d/${poem.id}/view" target="_blank" rel="noopener" class="read-more">Read full poem →</a>
+            </article>
+  `).join('\n');
+
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -175,16 +287,43 @@
         <header>
             <h1 class="logo">Versos</h1>
             <p class="tagline">A collection of Spanish poetry</p>
-            <p class="stats">0 poems from Google Drive</p>
+            <p class="stats">${poems.length} poems from Google Drive</p>
         </header>
 
         <main class="poem-grid">
-            
+            ${cardsHTML}
         </main>
 
         <footer>
-            <p>Synced from Google Drive &middot; <em>Versos</em> &copy; 2026</p>
+            <p>Synced from Google Drive &middot; <em>Versos</em> &copy; ${new Date().getFullYear()}</p>
         </footer>
     </div>
 </body>
-</html>
+</html>`;
+
+  return html;
+}
+
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+async function main() {
+  try {
+    const poems = await fetchPoems();
+    const html = await generateHTML(poems);
+
+    fs.writeFileSync(path.join(__dirname, 'index.html'), html);
+    console.log(`✓ Generated index.html with ${poems.length} poems`);
+  } catch (error) {
+    console.error('Error:', error.message);
+    process.exit(1);
+  }
+}
+
+main();
