@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poetry Collection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #faf9f7;
+            --text-color: #2c2c2c;
+            --accent-color: #8b7355;
+            --accent-light: #d4c5b5;
+            --secondary-text: #6b6b6b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #f5f5f5;
+                --accent-color: #c9b896;
+                --accent-light: #8b7355;
+                --secondary-text: #a0a0a0;
+                --card-bg: #242424;
+                --card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 300;
+            color: var(--text-color);
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .tagline {
+            color: var(--secondary-text);
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        .poem-grid {
+            display: grid;
+            gap: 3rem;
+            padding: 2rem 0 6rem;
+        }
+
+        .poem-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 3rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .poem-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .poem-card:hover {
+                box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            }
+        }
+
+        .poem-meta {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .poem-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .poem-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem;
+            line-height: 1.9;
+            color: var(--text-color);
+            white-space: pre-line;
+        }
+
+        .poem-body em {
+            font-style: italic;
+            color: var(--accent-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--secondary-text);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background: var(--accent-color);
+            color: var(--bg-color);
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: opacity 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        @media (max-width: 640px) {
+            .logo {
+                font-size: 2.2rem;
+            }
+
+            .poem-card {
+                padding: 2rem;
+            }
+
+            .poem-title {
+                font-size: 1.6rem;
+            }
+
+            .poem-body {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">Versos</h1>
+            <p class="tagline">A collection of Spanish poetry</p>
+        </header>
+
+        <main class="poem-grid">
+            <article class="poem-card">
+                <div class="poem-meta">Libro 1</div>
+                <h2 class="poem-title">El Sueño</h2>
+                <p class="poem-body">En la quietud de la noche,
+cuando las estrellas susurran,
+encuentro en el reflejo
+de mis propios pensamientos...</p>
+            </article>
+
+            <article class="poem-card">
+                <div class="poem-meta">Libro 2</div>
+                <h2 class="poem-title">Al Amanecer</h2>
+                <p class="poem-body">La luz que rompe el horizonte,
+despierta colores dormidos,
+y en cada rayo que nace,
+un verso nuevo comienza...</p>
+            </article>
+
+            <article class="poem-card">
+                <div class="poem-meta">Libro 3</div>
+                <h2 class="poem-title">Entre Sombras</h2>
+                <p class="poem-body">Caminé entre sombras largas,
+buscando lo que se escapa,
+y hallé en la incertidumbre,
+mi propia compañía...</p>
+            </article>
+        </main>
+
+        <footer>
+            <p>Created with care &middot; <em>Versos</em> &copy; 2026</p>
+            <a href="#" class="btn">View Collection</a>
+        </footer>
+    </div>
+</body>
+</html>
