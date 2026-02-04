@@ -31,15 +31,31 @@ const drive = google.drive({ version: 'v3', auth: oauth2Client });
 async function fetchPoems() {
   console.log('Fetching poems from Google Drive...');
 
-  const response = await drive.files.list({
-    q: `mimeType = 'text/markdown' and '${config.google.rootFolderId}' in parents and trashed = false`,
-    fields: 'files(id, name, createdTime, size)',
-    orderBy: 'createdTime desc',
+  // First get all subfolders (Libro 1, Libro 2, etc.)
+  const foldersResponse = await drive.files.list({
+    q: `'${config.google.rootFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields: 'files(id, name)',
     pageSize: 50
   });
 
-  const files = response.data.files || [];
-  console.log(`Found ${files.length} markdown files`);
+  const folders = foldersResponse.data.files || [];
+  console.log(`Found ${folders.length} notebook folders`);
+
+  const files = [];
+
+  // Search for markdown files in each folder
+  for (const folder of folders) {
+    const filesResponse = await drive.files.list({
+      q: `mimeType = 'text/markdown' and '${folder.id}' in parents and trashed = false`,
+      fields: 'files(id, name, createdTime, size)',
+      orderBy: 'createdTime desc',
+      pageSize: 100
+    });
+
+    files.push(...(filesResponse.data.files || []));
+  }
+
+  console.log(`Found ${files.length} markdown files total`);
 
   const poems = [];
 
